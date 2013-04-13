@@ -233,16 +233,16 @@ app.post('getFriendsTimes' , function(req, res){
                     var data = []
                     for (var i = 0; i < results.length; i++){
                         var result;
-                        if (results[i].fbId){}
+                        if (results[i].fbId){
                             result = {fbId: results[i].fbId, time: results[i].time , name: fbId.name};
                         }
                         if(result){
                             data.push(result);
                         }
                     }
-                    res.send({status: 'ok' data: data);
+                    res.send({status: 'ok' ,  data: data});
                 });
-            }
+            });
         });
     }
 });
