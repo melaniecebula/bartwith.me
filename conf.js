@@ -1,7 +1,7 @@
 module.exports = {
     fb: {
-        appId: ''
-      , appSecret: ''
+        appId: '',
+        appSecret: ''
     },
     expressPort: 8081
 };
