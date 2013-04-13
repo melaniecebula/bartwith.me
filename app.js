@@ -66,6 +66,7 @@ passport.use(new FacebookStrategy({
             newAccount.type = 'facebook';
             newAccount.picture = 'https://graph.facebook.com/' + profile.id + '/picture'
             newAccount.name = profile.displayName;
+            //newAccount.myId = {fbId : profile.id}
             newAccount.fbId = profile.id;
             newAccount.date = new Date();
             userColl.insert(newAccount, function(err, result) {
@@ -186,6 +187,65 @@ app.post('/auth/local', passport.authenticate('local', {
     failureRedirect: '/login',
     failureFlash: 'Invalid credentials'
 }));
+
+app.post('reportTime', function(req, res){
+   var time = req.time;
+   if(req.user){
+        var toInsert = {time: time}
+        userColl.update( {_id : req.user._id} , toInsert, function(err){
+           if (err){
+               throw err;
+           } 
+           res.send({status: 'ok'});
+        });
+   } 
+   else{
+       res.send({status: 'error'})
+   }
+});
+
+app.post('reportFriends', function(req, res){
+    var friends = req.friends //[ {fbId:} , ]
+    if (req.user){
+        var toInsert = {friends: friends};
+        userColl.update( {_id : req.user._id} , toInsert, function(err){
+           if (err){
+               throw err;
+           } 
+           res.send({status: 'ok'});
+        });
+    }
+    else {
+        res.send({status: 'error'});
+    }  
+})
+
+app.post('getFriendsTimes' , function(req, res){
+    if (req.user){
+        userColl.findOne(  {_id : req.user._id}, function(err, result) {
+            friends = result.friends;
+            var findObj = {$or: friends} 
+            userColl.find(findObj , function(err, cursor) {
+                if (err){
+                    throw err;
+                }
+                cursor.toArray(function(err, results){
+                    var data = []
+                    for (var i = 0; i < results.length; i++){
+                        var result;
+                        if (results[i].fbId){}
+                            result = {fbId: results[i].fbId, time: results[i].time , name: fbId.name};
+                        }
+                        if(result){
+                            data.push(result);
+                        }
+                    }
+                    res.send({status: 'ok' data: data);
+                });
+            }
+        });
+    }
+});
 
 server.listen(conf.expressPort);
 console.log('Express on port: ' + conf.expressPort);
