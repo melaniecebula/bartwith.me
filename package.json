@@ -1,0 +1,17 @@
+{
+  "name": "bartwith.me",
+  "version": "0.0.0",
+  "description": "a hub for data",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "dependencies":{
+    "express": "3.1.x",
+    "mongoskin": "*",
+    "socket.io": "*",
+  },
+  "author": "Ajay Tripathy",
+  "license": "SUPER RESTRICTIVE"
+}
