@@ -42,7 +42,8 @@ app.configure(function() {
 
 //mongoskin
 var mongo = require('mongoskin');
-var db = mongo.db('localhost:27017/bartwithme?auto_reconnect');
+var db = mongo.db('localhost:27017/bartwithme?auto_reconnect', {safe: true});
+var ObjectID = db.ObjectID;
 var userColl = db.collection('users');
 var userInfoColl = db.collection('userinfo');
 
@@ -67,28 +68,27 @@ passport.use(new FacebookStrategy({
             newAccount.name = profile.displayName;
             newAccount.fbId = profile.id;
             newAccount.date = new Date();
-            newAccount.userId = uuid.v1();
             userColl.insert(newAccount, function(err, result) {
                 if (err) {
                     console.log("Facebook Insert Error in User Collection: " + err);
+                    return done(err);
                     return;
                 } else {
+                    return done(null, result[0]);
                     //do nothing, adding was a success
                 }
-                return done(null, result);
             });
         }
     });
 }));
 
 passport.serializeUser(function(user, done) {
-    console.log(user);
-    done(null, user.userId);
+    done(null, user._id);
 });
 
 passport.deserializeUser(function(id, done) {
     userColl.findOne({
-        userId: id
+        _id: ObjectID.createFromHexString(id)
     }, function(err, user) {
         done(err, user);
     });
@@ -124,8 +124,7 @@ passport.use(new LocalStrategy(function(username, password, done) {
 app.get('/', function(req, res) {
     if (req.user) {
         res.render("index", {
-            user: req.user,
-            userId: req.userId
+            user: req.user
         });
     } else {
         res.redirect('/login');
@@ -165,7 +164,6 @@ app.post('/register/local', function(req, res) {
             newAccount.username = regUser.username;
             newAccount.password = regUser.password;
             newAccount.date = new Date();
-            newAccount.userId = uuid.v1();
             userColl.insert(newAccount, function(err, result) {
                 if (err) {
                     console.log("Local Insert Error in User Collection: " + err);
