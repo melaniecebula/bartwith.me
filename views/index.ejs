@@ -54,9 +54,11 @@
         <div>
 
             <p>Welcome User: <%= user.name %></p>
-            <input type="text" id="postStuff" size="25" value="">
-            <input type="text" id="postStuffData" size="25" value="">
-            <button type="button" onclick="proceed();">POST</button> 
+            <div>
+                <input type="text" id="postStuff" size="25" placeholder="Location of POST request...">
+                <input type="text" id="postStuffData" size="25" placeholder="Data for POST request...">
+            </div>
+            <button class="btn" type="button" onclick="proceed();">POST</button> 
             <div id="postResponse"></div>
         </div> 
 
