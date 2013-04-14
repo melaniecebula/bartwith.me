@@ -1,6 +1,8 @@
 //configure file
 var conf = require('./conf')
 
+var facebook = require('./facebook.js');
+
 //express
 var express = require('express');
 var app = express();
@@ -53,33 +55,54 @@ passport.use(new FacebookStrategy({
     clientSecret: conf.fb.appSecret,
     callbackURL: "http://localhost:"+conf.expressPort+"/auth/facebook/callback"
 }, function(accessToken, refreshToken, profile, done) {
-    userColl.findOne({
-        fbId: profile.id
-    }, function(err, account) {
-        if (err) {
-            return done(err);
+
+    facebook.getFbData(accessToken, '/me/friends', function(data){
+        var friends = [];
+        var data = JSON.parse(data);
+        for (var i = 0; i < data.data.length; i++) {
+            friends.push({fbID: data.data[i]['id']});
         }
-        if (account) {
-            return done(null, account);
-        } else {
-            var newAccount = {};
-            newAccount.type = 'facebook';
-            newAccount.picture = 'https://graph.facebook.com/' + profile.id + '/picture'
-            newAccount.name = profile.displayName;
-            //newAccount.myId = {fbId : profile.id}
-            newAccount.fbId = profile.id;
-            newAccount.date = new Date();
-            userColl.insert(newAccount, function(err, result) {
-                if (err) {
-                    console.log("Facebook Insert Error in User Collection: " + err);
-                    return done(err);
-                    return;
-                } else {
-                    return done(null, result[0]);
-                    //do nothing, adding was a success
-                }
-            });
-        }
+        userColl.findOne({
+            fbID: profile.id
+        }, function(err, account) {
+
+            if (err) {
+                return done(err);
+            }
+            if (account) {
+                var toInsert = {$set: {friends: friends}};
+                userColl.update( {fbID : profile.id} , toInsert, function(err){
+                    if (err){
+                        return done(err);
+                    } else {
+                        userColl.findOne({
+                            fbID: profile.id
+                        }, function(err, accountUpdated) {
+                            return done(null, accountUpdated)
+                        });
+                    }
+                });
+            } else {
+                var newAccount = {};
+                newAccount.type = 'facebook';
+                newAccount.picture = 'https://graph.facebook.com/' + profile.id + '/picture'
+                newAccount.name = profile.displayName;
+                //newAccount.myId = {fbID : profile.id}
+                newAccount.friends = friends;
+                newAccount.fbID = profile.id;
+                newAccount.date = new Date();
+                userColl.insert(newAccount, function(err, result) {
+                    if (err) {
+                        console.log("Facebook Insert Error in User Collection: " + err);
+                        return done(err);
+                        return;
+                    } else {
+                        return done(null, result[0]);
+                        //do nothing, adding was a success
+                    }
+                });
+            }
+        });
     });
 }));
 
@@ -206,7 +229,7 @@ app.post('/reportTimeAndRoute', function(req, res){
 });
 
 app.post('/reportFriends', function(req, res){
-    var friends = req.body.friends //[ {fbId:} , ]
+    var friends = req.body.friends //[ {fbID:} , ]
     if (req.user){
         var toInsert = {$set: {friends: friends}};
         userColl.update( {_id : req.user._id} , toInsert, function(err){
@@ -234,8 +257,8 @@ app.post('/getFriendsTimesAndRoutes' , function(req, res){
                     var data = []
                     for (var i = 0; i < results.length; i++){
                         var result;
-                        if (results[i].fbId){
-                            result = {fbId: results[i].fbId, time: results[i].time , route: results[i].route, name: results[i].name};
+                        if (results[i].fbID){
+                            result = {fbID: results[i].fbID, time: results[i].time , route: results[i].route, name: results[i].name};
                         }
                         if(result){
                             data.push(result);
