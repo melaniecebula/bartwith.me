@@ -19,6 +19,8 @@ io.configure(function() {
     io.set('log level', 1); // reduce logging
 });
 
+
+
 var passport = require('passport'),
     FacebookStrategy = require('passport-facebook').Strategy,
     LocalStrategy = require('passport-local').Strategy;
@@ -223,8 +225,24 @@ app.post('/reportTimeAndRoute', function(req, res){
         userColl.update( {_id : req.user._id} , toInsert, function(err){
             if (err){
                 throw err;
-            } 
+            }
             res.send({status: 'ok'});
+        });
+        userColl.findOne({_id: req.user._id}, function(err, result){
+            var friends = result.friends;
+            var findObj = {$or: friends} 
+            userColl.find(findObj , function(err, cursor) {
+                if (err){
+                    throw err;
+                }
+                cursor.toArray(function(err, results){
+                    var data = []
+                    for (var i = 0; i < results.length; i++){
+                        var sID = results[i].socketID;
+                        io.sockets.socket(sID).emit('updatedTime', {time: time, route: route, fbID: result.fbID, name: result.name} );
+                    }
+                });
+            });
         });
     } 
     else {
@@ -251,8 +269,8 @@ app.post('/reportFriends', function(req, res){
 app.post('/getFriendsTimesAndRoutes' , function(req, res){
     if (req.user){
         userColl.findOne(  {_id : req.user._id}, function(err, result) {
-            friends = result.friends;
-            var findObj = {$or: friends} 
+            var friends = result.friends;
+            var findObj = {$or: friends};
             userColl.find(findObj , function(err, cursor) {
                 if (err){
                     throw err;
@@ -273,6 +291,28 @@ app.post('/getFriendsTimesAndRoutes' , function(req, res){
             });
         });
     }
+});
+
+io.sockets.on('connection', function (socket) {
+    socket.on('join', function (data) {
+        console.log(data);
+        var userID = data._id
+        var toInsert = {$set: {socketID: socket.id}};
+        userColl.update( {_id :  ObjectID.createFromHexString(userID) } , toInsert, function(err){
+           if (err){
+                console.log(err);
+           } 
+        });
+    });
+    socket.on('disconnect', function(){
+        var socketID = socket.id
+        var toInsert = {$set: {socketID: null}};
+        userColl.update( {socketID :  socketID } , toInsert, function(err){
+           if (err){
+                console.log(err);
+           } 
+        });
+    });
 });
 
 server.listen(conf.expressPort);
