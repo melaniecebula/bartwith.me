@@ -23,6 +23,17 @@
         <script>
             document._id = "<%= user._id %>";
             document.userName = "<%= user.name %>"
+
+            function proceed () {
+                $.post(
+                    $("#postStuff").val(),
+                    $.parseJSON($("#postStuffData").val()),
+                    function (data) {
+                        $("#postResponse").text(JSON.stringify(data));
+                    },
+                    "json"
+                );
+            }
         </script>
         
     </head>
@@ -32,7 +43,10 @@
         <div>
 
             <p>Welcome User: <%= user.name %></p>
-
+            <input type="text" id="postStuff" size="25" value="">
+            <input type="text" id="postStuffData" size="25" value="">
+            <button type="button" onclick="proceed();">POST</button> 
+            <div id="postResponse"></div>
         </div> 
 
         <!-- javascript -->

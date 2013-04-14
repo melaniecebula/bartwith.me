@@ -188,26 +188,26 @@ app.post('/auth/local', passport.authenticate('local', {
     failureFlash: 'Invalid credentials'
 }));
 
-app.post('reportTime', function(req, res){
-   var time = req.time;
-   if(req.user){
-        var toInsert = {time: time}
+app.post('/reportTime', function(req, res){
+    var time = req.body.time;
+    if(req.user){
+        var toInsert = {$set: {time: time}};
         userColl.update( {_id : req.user._id} , toInsert, function(err){
-           if (err){
-               throw err;
-           } 
-           res.send({status: 'ok'});
+            if (err){
+                throw err;
+            } 
+            res.send({status: 'ok'});
         });
-   } 
-   else{
-       res.send({status: 'error'})
-   }
+    } 
+    else {
+        res.send({status: 'error'})
+    }
 });
 
-app.post('reportFriends', function(req, res){
-    var friends = req.friends //[ {fbId:} , ]
+app.post('/reportFriends', function(req, res){
+    var friends = req.body.friends //[ {fbId:} , ]
     if (req.user){
-        var toInsert = {friends: friends};
+        var toInsert = {$set: {friends: friends}};
         userColl.update( {_id : req.user._id} , toInsert, function(err){
            if (err){
                throw err;
@@ -220,7 +220,7 @@ app.post('reportFriends', function(req, res){
     }  
 })
 
-app.post('getFriendsTimes' , function(req, res){
+app.post('/getFriendsTimes' , function(req, res){
     if (req.user){
         userColl.findOne(  {_id : req.user._id}, function(err, result) {
             friends = result.friends;
@@ -234,7 +234,7 @@ app.post('getFriendsTimes' , function(req, res){
                     for (var i = 0; i < results.length; i++){
                         var result;
                         if (results[i].fbId){
-                            result = {fbId: results[i].fbId, time: results[i].time , name: fbId.name};
+                            result = {fbId: results[i].fbId, time: results[i].time , name: results[i].name};
                         }
                         if(result){
                             data.push(result);
