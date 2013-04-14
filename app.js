@@ -188,10 +188,11 @@ app.post('/auth/local', passport.authenticate('local', {
     failureFlash: 'Invalid credentials'
 }));
 
-app.post('/reportTime', function(req, res){
+app.post('/reportTimeAndRoute', function(req, res){
     var time = req.body.time;
+    var route = req.body.route;
     if(req.user){
-        var toInsert = {$set: {time: time}};
+        var toInsert = {$set: {time: time , route: route}};
         userColl.update( {_id : req.user._id} , toInsert, function(err){
             if (err){
                 throw err;
@@ -220,7 +221,7 @@ app.post('/reportFriends', function(req, res){
     }  
 })
 
-app.post('/getFriendsTimes' , function(req, res){
+app.post('/getFriendsTimesAndRoutes' , function(req, res){
     if (req.user){
         userColl.findOne(  {_id : req.user._id}, function(err, result) {
             friends = result.friends;
@@ -234,7 +235,7 @@ app.post('/getFriendsTimes' , function(req, res){
                     for (var i = 0; i < results.length; i++){
                         var result;
                         if (results[i].fbId){
-                            result = {fbId: results[i].fbId, time: results[i].time , name: results[i].name};
+                            result = {fbId: results[i].fbId, time: results[i].time , route: results[i].route, name: results[i].name};
                         }
                         if(result){
                             data.push(result);

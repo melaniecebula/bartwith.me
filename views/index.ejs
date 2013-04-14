@@ -19,6 +19,36 @@
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
         <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+        <script>
+          window.fbAsyncInit = function() {
+            FB.init({
+              appId      : '254514314669541', // App ID
+              //channelUrl : 'http://localhost/html/channel.html', // Channel File
+              status     : true, // check login status
+              cookie     : true, // enable cookies to allow the server to access the session
+              xfbml      : true  // parse XFBML
+            });
+
+            // Additional initialization code here
+            FB.Event.subscribe("auth.statusChange", function (response) {
+                if (response.authResponse) {
+                    console.log("Authenticated!!!");
+                }
+                else {
+                    console.log("Not authed or not logged in");
+                }
+            });
+          };
+
+          // Load the SDK Asynchronously
+          (function(d){
+             var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+             if (d.getElementById(id)) {return;}
+             js = d.createElement('script'); js.id = id; js.async = true;
+             js.src = "//connect.facebook.net/en_US/all.js";
+             ref.parentNode.insertBefore(js, ref);
+           }(document));
+        </script>
 
         <script>
             document._id = "<%= user._id %>";
@@ -48,6 +78,12 @@
             <button type="button" onclick="proceed();">POST</button> 
             <div id="postResponse"></div>
         </div> 
+
+        <script>
+            FB.api('/me', function(response) {
+                alert('Your name is ' + response.name);
+}           );
+        </script>
 
         <!-- javascript -->
         <script src="/socket.io/socket.io.js"></script>
