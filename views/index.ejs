@@ -29,7 +29,7 @@
                     $("#postStuff").val(),
                     $.parseJSON($("#postStuffData").val()),
                     function (data) {
-                        $("#postResponse").text(JSON.stringify(data));
+                        $("#postResponse").append(JSON.stringify(data));
                     },
                     "json"
                 );
@@ -53,6 +53,17 @@
 
         <!-- javascript -->
         <script src="/socket.io/socket.io.js"></script>
+        <script>
+            $(document).ready(function(){
+                var socket = io.connect('http://localhost:8081');
+                socket.emit('join', { _id: document._id });
+
+                socket.on('updatedTime', function (data) {
+                    console.log(data);
+                    $('#postResponse').append(JSON.stringify(data));
+                });
+            });
+        </script>
 
     </body>
 </html>
